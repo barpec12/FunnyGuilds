@@ -2,6 +2,7 @@ package net.dzikoysk.funnyguilds.data.util;
 
 import net.dzikoysk.funnyguilds.FunnyGuilds;
 import net.dzikoysk.funnyguilds.basic.guild.Guild;
+import net.dzikoysk.funnyguilds.basic.guild.GuildUtils;
 import net.dzikoysk.funnyguilds.basic.guild.Region;
 import net.dzikoysk.funnyguilds.basic.user.User;
 import net.dzikoysk.funnyguilds.basic.user.UserBan;
@@ -20,7 +21,7 @@ public final class DeserializationUtils {
         }
         
         final Guild guild = Guild.getOrCreate((UUID) values[0]);
-        
+        guild.setDuringSerialization(true);
         guild.setName((String) values[1]);
         guild.setTag(FunnyGuilds.getInstance().getPluginConfiguration().guildTagKeepCase ? (String) values[2] : (FunnyGuilds.getInstance().getPluginConfiguration().guildTagUppercase ? ((String) values[2]).toUpperCase() : ((String) values[2]).toLowerCase()));
         guild.setOwner((User) values[3]);
@@ -35,7 +36,8 @@ public final class DeserializationUtils {
         guild.setBan((long) values[13]);
         guild.setDeputies((Set<User>) values[14]);
         guild.deserializationUpdate();
-        
+        guild.setDuringSerialization(false);
+
         return guild;
     }
 
@@ -46,12 +48,14 @@ public final class DeserializationUtils {
         }
         
         Region region = Region.get((String) values[0]);
+        region.setDuringSerialization(true);
 
         region.setCenter((Location) values[1]);
         region.setSize((int) values[2]);
         region.setEnlarge((int) values[3]);
         region.update();
-        
+        region.setDuringSerialization(false);
+
         return region;
     }
 
@@ -60,7 +64,8 @@ public final class DeserializationUtils {
         String playerName = (String) values[1];
 
         User user = User.create(playerUniqueId, playerName);
-        
+        user.setDuringSerialization(true);
+
         user.getRank().setPoints((int) values[2]);
         user.getRank().setKills((int) values[3]);
         user.getRank().setDeaths((int) values[4]);
@@ -70,7 +75,10 @@ public final class DeserializationUtils {
         if (banTime > 0) {
             user.setBan(new UserBan((String) values[6], banTime));
         }
-        
+        if(values.length==8){
+            user.setGuild(GuildUtils.getByTag((String) values[7]));
+        }
+        user.setDuringSerialization(false);
         return user;
     }
 

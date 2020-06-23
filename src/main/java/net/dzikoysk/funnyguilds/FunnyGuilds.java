@@ -14,6 +14,8 @@ import net.dzikoysk.funnyguilds.data.InvitationPersistenceHandler;
 import net.dzikoysk.funnyguilds.data.configs.MessageConfiguration;
 import net.dzikoysk.funnyguilds.data.configs.PluginConfiguration;
 import net.dzikoysk.funnyguilds.data.database.Database;
+import net.dzikoysk.funnyguilds.data.redis.Redis;
+import net.dzikoysk.funnyguilds.data.redis.RedisListener;
 import net.dzikoysk.funnyguilds.element.gui.GuiActionHandler;
 import net.dzikoysk.funnyguilds.element.tablist.AbstractTablist;
 import net.dzikoysk.funnyguilds.element.tablist.TablistBroadcastHandler;
@@ -52,6 +54,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
+import redis.clients.jedis.Jedis;
 
 import java.io.File;
 import java.io.IOException;
@@ -151,6 +154,17 @@ public class FunnyGuilds extends JavaPlugin {
         this.dataModel = DataModel.create(this, this.pluginConfiguration.dataModel);
         this.dataModel.load();
 
+        if(this.pluginConfiguration.redisConfig.enabled) {
+            new Thread("FGuilds Redis Subscriber") {
+                @Override
+                public void run() {
+                    Bukkit.getLogger().info("Connecting to Redis...");
+                    Jedis jedis = Redis.getInstance().getJedisPool().getResource();
+                    jedis.subscribe(new RedisListener(), "fguilds-guilds", "fguilds-regions", "fguilds-users", "fguilds-remove");
+                    jedis.close();
+                }
+            }.start();
+        }
         this.dataPersistenceHandler = new DataPersistenceHandler(this);
         this.dataPersistenceHandler.startHandler();
 
@@ -234,6 +248,9 @@ public class FunnyGuilds extends JavaPlugin {
 
         this.getServer().getScheduler().cancelTasks(this);
         Database.getInstance().shutdown();
+
+        if(this.pluginConfiguration.redisConfig.enabled)
+            Redis.getInstance().shutdown();
 
         funnyguilds = null;
     }

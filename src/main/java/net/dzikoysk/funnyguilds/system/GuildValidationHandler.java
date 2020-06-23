@@ -40,7 +40,7 @@ public class GuildValidationHandler implements Runnable {
 
     private void validateGuildBans() {
         for (Guild guild : GuildUtils.getGuilds()) {
-            if (guild.getBan() > System.currentTimeMillis()) {
+            if (guild.getBan() == 0 || guild.getBan() > System.currentTimeMillis()) {
                 continue;
             }
 

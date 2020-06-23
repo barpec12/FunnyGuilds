@@ -9,6 +9,7 @@ import net.dzikoysk.funnyguilds.data.configs.PluginConfiguration;
 import net.dzikoysk.funnyguilds.data.database.DatabaseGuild;
 import net.dzikoysk.funnyguilds.data.database.SQLDataModel;
 import net.dzikoysk.funnyguilds.data.flat.FlatDataModel;
+import net.dzikoysk.funnyguilds.data.redis.Redis;
 import net.dzikoysk.funnyguilds.util.nms.BlockDataChanger;
 import net.dzikoysk.funnyguilds.util.nms.GuildEntityHelper;
 import org.bukkit.Bukkit;
@@ -16,6 +17,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import redis.clients.jedis.Jedis;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -35,6 +37,9 @@ public class GuildUtils {
     }
 
     public static void deleteGuild(Guild guild) {
+        deleteGuild(guild, true);
+    }
+        public static void deleteGuild(Guild guild, boolean withPublish) {
         PluginConfiguration config = FunnyGuilds.getInstance().getPluginConfiguration();
 
         if (guild == null) {
@@ -61,6 +66,11 @@ public class GuildUtils {
             }
 
             RegionUtils.delete(guild.getRegion());
+            if(withPublish && config.redisConfig.enabled) {
+                Jedis jedis = Redis.getInstance().getJedisPool().getResource();
+                jedis.publish("fguilds-remove", guild.getName());
+                jedis.close();
+            }
         }
 
         ConcurrencyManager concurrencyManager = FunnyGuilds.getInstance().getConcurrencyManager();

@@ -37,7 +37,7 @@ public class User extends AbstractBasic {
         this.rank = new Rank(this);
         this.playerRef = new WeakReference<>(Bukkit.getPlayer(this.uuid));
         this.bossBarProvider = BossBarProvider.getBossBar(this);
-        this.markChanged();
+//        this.markChanged();
     }
 
     private User(String name) {
@@ -228,7 +228,9 @@ public class User extends AbstractBasic {
 
     public static User get(Player player) {
         if (player.getUniqueId().version() == 2) {
-            return new User(player);
+            User u = new User(player);
+            u.markChanged();
+            return u;
         }
 
         return UserUtils.get(player.getUniqueId());

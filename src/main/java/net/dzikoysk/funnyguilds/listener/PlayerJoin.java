@@ -36,6 +36,7 @@ public class PlayerJoin implements Listener {
 
         if (user == null) {
             user = User.create(player);
+            user.markChanged();
         }
 
         user.updateReference(player);

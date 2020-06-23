@@ -35,8 +35,6 @@ public class Region extends AbstractBasic {
     }
 
     public synchronized void update() {
-        super.markChanged();
-
         if (this.center == null) {
             return;
         }
@@ -62,6 +60,7 @@ public class Region extends AbstractBasic {
             this.firstCorner = l.toLocation(this.world);
             this.secondCorner = p.toLocation(this.world);
         }
+//        super.markChanged();
     }
 
     public void delete() {
@@ -74,7 +73,7 @@ public class Region extends AbstractBasic {
     }
 
     public boolean isIn(Location loc) {
-        this.update();
+//        this.update();
 
         if (loc == null || this.firstCorner == null || this.secondCorner == null) {
             return false;
@@ -122,6 +121,7 @@ public class Region extends AbstractBasic {
     public void setSize(int i) {
         this.size = i;
         this.update();
+        this.markChanged();
     }
 
 
@@ -199,8 +199,9 @@ public class Region extends AbstractBasic {
                 return region;
             }
         }
-
-        return new Region(name);
+        Region region = new Region(name);
+        region.markChanged();
+        return region;
     }
 
 }

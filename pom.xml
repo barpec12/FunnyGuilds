@@ -137,6 +137,13 @@
             <artifactId>github-api</artifactId>
             <version>1.114</version>
         </dependency>
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>3.3.0</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <repositories>
@@ -229,6 +236,10 @@
                         <relocation>
                             <pattern>org.apache.logging.log4j.</pattern>
                             <shadedPattern>net.dzikoysk.funnyguilds.libs.org.apache.logging.log4j.</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>redis.clients.jedis.</pattern>
+                            <shadedPattern>net.dzikoysk.funnyguilds.libs.redis.clients.jedis.</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>

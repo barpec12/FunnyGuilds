@@ -230,6 +230,7 @@ public class ExcCreate implements Executor {
         }
 
         Guild guild = new Guild(name);
+        guild.setDuringSerialization(true);
         guild.setTag(tag);
         guild.setOwner(user);
         guild.setLives(config.warLives);
@@ -238,10 +239,13 @@ public class ExcCreate implements Executor {
         guild.setAttacked(System.currentTimeMillis() - config.warWait + config.warProtection);
         guild.setPvP(config.damageGuild);
         user.setGuild(guild);
+        guild.setDuringSerialization(false);
+        guild.markChanged();
         GuildUtils.addGuild(guild);
         
         if (config.regionsEnabled) {
             Region region = new Region(guild, guildLocation, config.regionSize);
+            region.markChanged();
             guild.setRegion(region);
 
             if (config.pasteSchematicOnCreation) {

@@ -1225,6 +1225,9 @@ public class PluginConfiguration {
     @CfgName("mysql")
     public MySQL mysql = new MySQL("localhost", 3306, "db", "root", "passwd", 5, 30000, true, "users", "guilds", "regions");
 
+    @CfgName("redis")
+    public RedisConfig redisConfig = new RedisConfig(false, "localhost", 6379, "passwd", 2000, 0);
+
     private List<ItemStack> loadItemStackList(List<String> strings) {
         List<ItemStack> items = new ArrayList<>();
         for (String item : strings) {
@@ -1692,5 +1695,33 @@ public class PluginConfiguration {
             this.regionsTableName = regionsTableName;
         }
     }
+    public static class RedisConfig {
 
+        public boolean enabled;
+
+        @CfgStringStyle(StringStyle.ALWAYS_QUOTED)
+        public String host;
+
+        public int port;
+
+
+        @CfgStringStyle(StringStyle.ALWAYS_QUOTED)
+        public String password;
+
+        public int connectionTimeout;
+        public int operationTimeout;
+        public int database;
+
+        public RedisConfig() {
+        }
+
+        public RedisConfig(boolean enabled, String host, int port, String password, int connectionTimeout, int database) {
+            this.enabled = enabled;
+            this.host = host;
+            this.port = port;
+            this.password = password;
+            this.connectionTimeout = connectionTimeout;
+            this.database = database;
+        }
+    }
 }

@@ -80,6 +80,7 @@ public class AxcMove implements Executor {
 
         if (region == null) {
             region = new Region(guild, location, config.regionSize);
+            region.markChanged();
         } else {
             if (config.createEntityType != null) {
                 GuildEntityHelper.despawnGuildHeart(guild);
