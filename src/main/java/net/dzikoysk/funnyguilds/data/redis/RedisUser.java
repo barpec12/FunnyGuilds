@@ -41,7 +41,7 @@ public class RedisUser {
         int points = new Long((long) jsonObject.get("points")).intValue();
         int kills = new Long((long) jsonObject.get("kills")).intValue();
         int deaths = new Long((long) jsonObject.get("deaths")).intValue();
-        String guild = (String) jsonObject.get("guild");
+
         long ban = 0;
         String reason = null;
         if(jsonObject.containsKey("ban")) {
@@ -60,7 +60,10 @@ public class RedisUser {
         values[4] = deaths;
         values[5] = ban;
         values[6] = reason;
-        values[7] = guild;
+        if(jsonObject.containsKey("guild")) {
+            String guild = (String) jsonObject.get("guild");
+            values[7] = guild;
+        }
 
         return DeserializationUtils.deserializeUser(values);
     }
@@ -73,7 +76,8 @@ public class RedisUser {
         jsonObject.put("points", user.getRank().getPoints());
         jsonObject.put("kills", user.getRank().getKills());
         jsonObject.put("deaths", user.getRank().getDeaths());
-        jsonObject.put("guild", user.getGuild().getTag());
+        if(user.hasGuild())
+            jsonObject.put("guild", user.getGuild().getName());
 
         if (user.isBanned()) {
             jsonObject.put("ban", user.getBan().getBanTime());

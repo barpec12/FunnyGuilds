@@ -16,6 +16,7 @@ public final class FunnyGuildsVersion {
     private static final String VERSION_FILE_URL = "https://funnyguilds.dzikoysk.net/latest.info";
 
     public static void isNewAvailable(CommandSender sender, boolean force) {
+        if(true) return;
         if (!FunnyGuilds.getInstance().getPluginConfiguration().updateInfo && !force) {
             return;
         }

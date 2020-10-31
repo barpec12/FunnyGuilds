@@ -75,8 +75,8 @@ public final class DeserializationUtils {
         if (banTime > 0) {
             user.setBan(new UserBan((String) values[6], banTime));
         }
-        if(values.length==8){
-            user.setGuild(GuildUtils.getByTag((String) values[7]));
+        if(values.length == 8 && values[7] != null){
+            user.setGuild(GuildUtils.getByName((String) values[7]));
         }
         user.setDuringSerialization(false);
         return user;
