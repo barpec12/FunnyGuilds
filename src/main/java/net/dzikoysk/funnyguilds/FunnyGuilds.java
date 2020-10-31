@@ -1,6 +1,5 @@
 package net.dzikoysk.funnyguilds;
 
-import com.google.common.base.Throwables;
 import net.dzikoysk.funnyguilds.basic.guild.Guild;
 import net.dzikoysk.funnyguilds.basic.guild.GuildUtils;
 import net.dzikoysk.funnyguilds.basic.rank.RankRecalculationTask;
@@ -34,6 +33,7 @@ import net.dzikoysk.funnyguilds.listener.region.BlockPhysics;
 import net.dzikoysk.funnyguilds.listener.region.BlockPlace;
 import net.dzikoysk.funnyguilds.listener.region.BucketAction;
 import net.dzikoysk.funnyguilds.listener.region.EntityExplode;
+import net.dzikoysk.funnyguilds.listener.region.GuildHeartProtectionHandler;
 import net.dzikoysk.funnyguilds.listener.region.HangingBreak;
 import net.dzikoysk.funnyguilds.listener.region.HangingPlace;
 import net.dzikoysk.funnyguilds.listener.region.PlayerCommand;
@@ -57,7 +57,6 @@ import org.kohsuke.github.GitHubBuilder;
 import redis.clients.jedis.Jedis;
 
 import java.io.File;
-import java.io.IOException;
 
 public class FunnyGuilds extends JavaPlugin {
 
@@ -83,8 +82,6 @@ public class FunnyGuilds extends JavaPlugin {
     private DataModel                    dataModel;
     private DataPersistenceHandler       dataPersistenceHandler;
     private InvitationPersistenceHandler invitationPersistenceHandler;
-
-    private GitHub githubAPI;
 
     private boolean isDisabling;
     private boolean forceDisabling;
@@ -142,6 +139,7 @@ public class FunnyGuilds extends JavaPlugin {
         commands.register();
 
         this.dynamicListenerManager = new DynamicListenerManager(this);
+        PluginHook.earlyInit();
     }
 
     @Override
@@ -188,6 +186,7 @@ public class FunnyGuilds extends JavaPlugin {
         pluginManager.registerEvents(new PlayerJoin(this), this);
         pluginManager.registerEvents(new PlayerLogin(), this);
         pluginManager.registerEvents(new PlayerQuit(), this);
+        pluginManager.registerEvents(new GuildHeartProtectionHandler(), this);
 
         this.dynamicListenerManager.registerDynamic(() -> pluginConfiguration.regionsEnabled,
                 new BlockBreak(),
@@ -206,14 +205,6 @@ public class FunnyGuilds extends JavaPlugin {
         this.dynamicListenerManager.registerDynamic(() -> pluginConfiguration.regionsEnabled && pluginConfiguration.respawnInBase, new PlayerRespawn());
         this.dynamicListenerManager.reloadAll();
         this.patch();
-
-        try {
-            this.githubAPI = new GitHubBuilder().build();
-        }
-        catch (IOException ex) {
-            this.getPluginLogger().debug("Could not initialize GitHub API!");
-            this.getPluginLogger().debug(Throwables.getStackTraceAsString(ex));
-        }
 
         FunnyGuildsVersion.isNewAvailable(this.getServer().getConsoleSender(), true);
         PluginHook.init();
@@ -247,6 +238,8 @@ public class FunnyGuilds extends JavaPlugin {
         this.invitationPersistenceHandler.stopHandler();
 
         this.getServer().getScheduler().cancelTasks(this);
+        this.getConcurrencyManager().awaitTermination(this.pluginConfiguration.pluginTaskTerminationTimeout);
+
         Database.getInstance().shutdown();
 
         if(this.pluginConfiguration.redisConfig.enabled)
@@ -262,7 +255,12 @@ public class FunnyGuilds extends JavaPlugin {
             User user = User.get(player);
 
             if (user.getCache().getScoreboard() == null) {
-                user.getCache().setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+                if (pluginConfiguration.useSharedScoreboard) {
+                    user.getCache().setScoreboard(player.getScoreboard());
+                }
+                else {
+                    user.getCache().setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+                }
             }
 
             user.getCache().getDummy();
@@ -343,10 +341,6 @@ public class FunnyGuilds extends JavaPlugin {
 
     public String getMainVersion() {
         return this.mainVersion;
-    }
-
-    protected GitHub getGithubAPI() {
-        return this.githubAPI;
     }
 
     public static FunnyGuilds getInstance() {

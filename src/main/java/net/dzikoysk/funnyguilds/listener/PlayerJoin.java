@@ -37,6 +37,10 @@ public class PlayerJoin implements Listener {
         if (user == null) {
             user = User.create(player);
             user.markChanged();
+        } else {
+            if (! user.getName().equals(player.getName())) {
+                user.setName(player.getName());
+            }
         }
 
         user.updateReference(player);
@@ -49,7 +53,12 @@ public class PlayerJoin implements Listener {
         UserCache cache = user.getCache();
 
         if (cache.getScoreboard() == null) {
-            cache.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+            if (config.useSharedScoreboard) {
+                cache.setScoreboard(player.getScoreboard());
+            }
+            else {
+                cache.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+            }
         }
 
         if (cache.getIndividualPrefix() == null && config.guildTagEnabled) {

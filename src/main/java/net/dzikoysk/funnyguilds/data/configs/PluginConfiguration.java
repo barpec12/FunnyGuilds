@@ -413,7 +413,11 @@ public class PluginConfiguration {
 
     @CfgComment("Maksymalna liczba czlonkow w gildii")
     @CfgName("max-members")
-    public int inviteMembers = 15;
+    public int maxMembersInGuild = 15;
+
+    @CfgComment("Maksymalna liczba sojuszy miedzy gildiami")
+    @CfgName("max-allies")
+    public int maxAlliesBetweenGuilds = 15;
 
     @CfgComment("Lista nazw swiatow, na ktorych mozliwosc utworzenia gildii powinna byc zablokowana")
     @CfgName("blocked-worlds")
@@ -437,6 +441,10 @@ public class PluginConfiguration {
     @CfgComment("Czas oczekiwania na teleportacje (w sekundach)")
     @CfgName("base-delay")
     public int baseDelay = 5;
+
+    @CfgComment("Czas oczekiwania na teleportacje (w sekundach) dla graczy posiadajacych uprawnienie (funnyguilds.vip.baseTeleportTime)")
+    @CfgName("base-delay-vip")
+    public int baseDelayVip = 3;
 
     @CfgComment("Koszt teleportacji do gildii (jezeli brak, wystarczy zrobic: base-items: [])")
     @CfgName("base-items")
@@ -939,6 +947,12 @@ public class PluginConfiguration {
     @CfgExclude
     public String ptopOffline;
 
+    @CfgName("use-shared-scoreboard")
+    @CfgComment("Czy FunnyGuilds powinno korzystac z wspoldzielonego scoreboarda")
+    @CfgComment("Ta opcja pozwala na dzialanie pluginu FunnyGuilds oraz innych pluginow modyfikujacych scoreboard ze soba")
+    @CfgComment("UWAGA: Opcja eksperymentalna i moze powodowac bledy przy wyswietlaniu rzeczy zaleznych od scoreboardow!")
+    public boolean useSharedScoreboard = false;
+
     @CfgComment("Czy wlaczyc dummy z punktami")
     @CfgComment(
             "UWAGA - zalecane jest wylaczenie tej opcji w przypadku konfliktow z BungeeCord'em, wiecej szczegolow tutaj: https://github.com/FunnyGuilds/FunnyGuilds/issues/769")
@@ -1205,6 +1219,14 @@ public class PluginConfiguration {
     @CfgComment("Co ile minut ma automatycznie zapisywac dane")
     @CfgName("data-interval")
     public int dataInterval = 1;
+
+    @CfgComment("Jak dlugo plugin powinien czekac na zatrzymanie wszystkich biezacych zadan przy wylaczaniu pluginu")
+    @CfgComment("Czas podawany w sekundach")
+    @CfgName("plugin-task-termination-timeout")
+    public long pluginTaskTerminationTimeout_ = 30;
+
+    @CfgExclude
+    public long pluginTaskTerminationTimeout;
 
     @CfgComment("Typ zapisu danych")
     @CfgComment("FLAT - Lokalne pliki")
@@ -1515,6 +1537,7 @@ public class PluginConfiguration {
         this.lastAttackerAsKillerConsiderationTimeout_ = TimeUnit.SECONDS.toMillis(this.lastAttackerAsKillerConsiderationTimeout);
 
         this.rankingUpdateInterval_ = Math.max(1, this.rankingUpdateInterval);
+        this.pluginTaskTerminationTimeout = Math.max(1, this.pluginTaskTerminationTimeout_);
     }
 
     public static class Commands {

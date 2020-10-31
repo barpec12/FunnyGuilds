@@ -1,6 +1,12 @@
 package net.dzikoysk.funnyguilds.hook;
 
 import net.dzikoysk.funnyguilds.FunnyGuilds;
+import net.dzikoysk.funnyguilds.hook.worldedit.WorldEdit6Hook;
+import net.dzikoysk.funnyguilds.hook.worldedit.WorldEdit7Hook;
+import net.dzikoysk.funnyguilds.hook.worldedit.WorldEditHook;
+import net.dzikoysk.funnyguilds.hook.worldguard.WorldGuard6Hook;
+import net.dzikoysk.funnyguilds.hook.worldguard.WorldGuard7Hook;
+import net.dzikoysk.funnyguilds.hook.worldguard.WorldGuardHook;
 import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
@@ -11,13 +17,36 @@ public final class PluginHook {
 
     public static final String PLUGIN_FUNNYTAB           = "FunnyTab";
     public static final String PLUGIN_WORLDGUARD         = "WorldGuard";
+    public static final String PLUGIN_WORLDEDIT          = "WorldEdit";
     public static final String PLUGIN_VAULT              = "Vault";
     public static final String PLUGIN_PLACEHOLDERAPI     = "PlaceholderAPI";
     public static final String PLUGIN_BUNGEETABLISTPLUS  = "BungeeTabListPlus";
     public static final String PLUGIN_MVDWPLACEHOLDERAPI = "MVdWPlaceholderAPI";
     public static final String PLUGIN_LEADERHEADS        = "LeaderHeads";
 
+    public static WorldGuardHook WORLD_GUARD;
+    public static WorldEditHook WORLD_EDIT;
+
     private static final List<String> HOOK_LIST = new ArrayList<>();
+
+    public static void earlyInit() {
+        tryInit(PLUGIN_WORLDGUARD, () -> {
+            try {
+                Class.forName("com.sk89q.worldguard.protection.flags.registry.FlagRegistry");
+                Class.forName("com.sk89q.worldguard.protection.flags.Flag");
+
+                String worldGuardVersion = Bukkit.getPluginManager().getPlugin("WorldGuard").getDescription().getVersion();
+                WORLD_GUARD = worldGuardVersion.startsWith("7") ? new WorldGuard7Hook() : new WorldGuard6Hook();
+                WORLD_GUARD.init();
+
+                return true;
+            }
+            catch (final ClassNotFoundException exception) {
+                FunnyGuilds.getInstance().getPluginLogger().warning("FunnyGuilds supports only WorldGuard v6.2 or newer");
+                return false;
+            }
+        });
+    }
 
     public static void init() {
         tryInit(PLUGIN_FUNNYTAB, () -> {
@@ -25,24 +54,17 @@ public final class PluginHook {
             return true;
         }, false);
 
-        tryInit(PLUGIN_WORLDGUARD, () -> {
+        tryInit(PLUGIN_WORLDEDIT, () -> {
             try {
-                Class.forName("com.sk89q.worldguard.protection.flags.registry.FlagRegistry");
-                Class.forName("com.sk89q.worldguard.protection.flags.Flag");
+                Class.forName("com.sk89q.worldedit.Vector");
+                WORLD_EDIT = new WorldEdit6Hook();
+            }
+            catch (ClassNotFoundException ignored) {
+                WORLD_EDIT = new WorldEdit7Hook();
+            }
 
-                if (Bukkit.getPluginManager().getPlugin("WorldGuard").getDescription().getVersion().startsWith("7")) {
-                    FunnyGuilds.getInstance().getPluginLogger().warning("Support for WorldGuard v7.0.0 or newer is currently unavailable");
-                    return false;
-                }
-                else {
-                    WorldGuardHook.initWorldGuard();
-                    return true;
-                }
-            }
-            catch (final ClassNotFoundException exception) {
-                FunnyGuilds.getInstance().getPluginLogger().warning("FunnyGuilds supports only WorldGuard v6.2 or newer");
-                return false;
-            }
+            WORLD_EDIT.init();
+            return true;
         });
 
         tryInit(PLUGIN_BUNGEETABLISTPLUS, () -> {
